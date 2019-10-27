@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+
+#set -x #Debuging
+
+set -e
+
+_Input () {
+
+	declare -g Depth
+
+	if [[ -z "${*}" ]]; then
+		Exit_Code="$(Error_Handle "${Stat[no_input]}")"
+		exit "${Exit_Code}"
+	fi
+
+	Main_Input=("${@}")
+
+	eval set -- "${Main_Input[@]}"
+
+	for arg in "${Main_Input[@]}"; do
+
+		case "${arg}" in
+
+			-a|--action|-n|--dryrun|-s|--show|-h|--help) # act on files
+				if [[ -n "${Flag}" ]]; then
+					Exit_Code="$(Error_Handle "${Stat[multiple_flags]}" "${arg}")"
+					exit "${Exit_Code}"
+				else
+					case "${arg}" in
+						-a|--action)
+							Flag="Action"
+							;;
+						-n|--dryrun)
+							Flag="No_Action"
+							;;
+						-s|--show)
+							Flag="Show"
+							;;
+						-h|--help)
+							Help_Usage 
+							exit "${Status_success}"
+							;;
+					esac
+				fi
+
+				;;
+			-R|--recursive) # run in non recursive mode
+				Depth="-mindepth 0"
+				;;
+			-d|--directory) # process files in multiple directories
+				Prev_Flag="d"
+				;;
+			*) # print help message
+				if [[ $Prev_Flag == d ]]; then
+					if	[[ -d "${arg}" ]]; then
+						Dir_List+=("${arg%/}")
+					else
+						Exit_Code="$(Error_Handle "${Stat[non_existent_directory]}" "${arg}")"
+						exit "${Exit_Code}"
+					fi
+				else
+					Exit_Code="$(Error_Handle "${Stat[invalid_flag]}" "${arg}")"
+					exit "${Exit_Code}"
+				fi
+				;;
+		esac
+	done
+
+	unset "Main_Input[@]"
+
+
+	if [[ -z "${Dir_List[*]}" ]]; then
+		Exit_Code="$(Error_Handle "${Stat[no_directory]}" "${arg}")"
+		exit "${Exit_Code}"
+	elif [[ -z "${Flag}" ]]; then
+		Exit_Code="$(Error_Handle "${Stat[no_action]}" "${arg}")"
+		exit "${Exit_Code}"
+	elif [ "${Flag}" = 'Action' ]; then
+		read -N 1 -sr -p 'Rename files permanently? ( y or n )'
+		if [ "${REPLY}" != 'y' ]; then
+			exit
+		else
+			echo -ne '\n'
+		fi
+	fi
+
+}
+
+_Input "${@}"

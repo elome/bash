@@ -1,0 +1,61 @@
+#!/bin/bash
+
+script_dir=$(dirname "$0")              # directory of this script
+script_dir=$(readlink -f "$script_dir") # Make sure absolute path
+
+# shellcheck disable=SC1090
+. "$script_dir"/color_def.sh
+
+
+# shellcheck disable=SC2154
+# print program status
+Show_Status () {
+
+	local Status_Type="${1}"
+	local File_Path
+	local Parent_Dir
+	local New_File_Name
+	local Total_Files
+
+	case "${Status_Type}" in
+
+		Action)
+			File_Path="${2}"
+			Parent_Dir="${3}"
+			New_File_Name="${4}"
+			printf -- "[${BGreen}Success${NC}] %s -> %s\n" "${File_Path}" "${Parent_Dir}/${New_File_Name}"
+			return 0
+			;;
+		No_Action)
+			File_Path="${2}"
+			Parent_Dir="${3}"
+			New_File_Name="${4}"
+			printf -- "${Green}rename${NC}(%s, %s)\n" "${File_Path}" "${Parent_Dir}/${New_File_Name}"
+			return 0
+			;;
+		Summary)
+			Summary_Type="${2}"
+			Total_Files="${3}"
+			Plural='s'
+			if [[ "${Total_Files}" -eq 1 ]]; then
+				Plural=''
+			fi
+			case "${Summary_Type}" in
+				Action)
+					printf -- "\n${Green}[${NC}${Red}%s${NC}${Green}]${NC} File${Plural} Successfuly renamed\n" "${Total_Files}"
+					return 0
+					;;
+				No_Action)
+					printf -- "\n${Green}[${NC}${Orange}%s${NC}${Green}]${NC} File${Plural} can be renamed\n" "${Total_Files}"
+					return 0
+					;;
+				Show)
+					printf -- "\n${Green}[${NC}${Orange}%s${NC}${Green}]${NC} File${Plural} Found\n" "${Total_Files}"
+					return 0
+					;;
+			esac
+			;;
+	esac
+}
+
+Show_Status "${@}"

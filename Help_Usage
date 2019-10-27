@@ -1,0 +1,49 @@
+#!/bin/bash
+
+Print_Help () {
+
+	local PROG_NAME="rn"
+
+	cat << _EOF_
+
+	find Name (directory or file) Lint.
+
+	Usage: $PROG_NAME -s | -n | -a | -h -d Parent_Dir ...
+
+	These options are mutually exclusive (i.e. They cannot be used together).
+	-a act.
+	-n dry run. (i.e. Show which files will be changed permanently if -a flag is supplied).
+	-s show filenames those that does not conform with the POSIX.1 filename portability testing.
+	-s is most stringent and applies POSIX.1 filename portability testing.
+
+	I.E. characters are limited to [A-Za-z0-9_.-] and max name length = 14 and
+	max path length = 255.
+
+
+_EOF_
+
+return
+
+}
+
+usage () {
+
+	local PROG_NAME="rn"
+
+	cat << _EOF_
+
+	Usage: $PROG_NAME [OPTION]... [parent-directory]
+
+	Try '$PROG_NAME --help' for more information.
+
+_EOF_
+
+return
+
+}
+
+if [ "${1}" == 'usage' ]; then
+	usage "${@}"
+else
+	Print_Help "${@}"
+fi

@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+
+#set -x #Debuging
+
+shopt -u nocaseglob
+shopt -u nocasematch
+set -e
+unset LC_TYPE
+
+script_dir="$(dirname "${0}")"              # directory of this script
+script_dir="$(readlink -f "${script_dir}")" # Make sure absolute path
+
+# shellcheck source=./color_def.sh
+source "${script_dir}/color_def.sh"
+# shellcheck source=./variables.sh
+source "${script_dir}/variables.sh"
+
+
+Check_Flags () {
+
+	local Current_Opt="${1}"
+
+	if [[ -n "${Flag}" ]]; then
+		local Exit_Code
+		Exit_Code="$(Error_Handle "${Status_multiple_flags}" "${arg}")"
+		exit "${Exit_Code}"
+	else
+		case "${Current_Opt}" in
+			-a|--action)
+				Flag="Action"
+				;;
+			-n|--dryrun)
+				Flag="No_Action"
+				;;
+			-s|--show)
+				Flag="Show"
+				;;
+			-h|--help)
+				Help_Usage 
+				exit "${Status_success}"
+				;;
+		esac
+	fi
+
+}
+
+if [[ -z "${Dir_List[*]}" ]]; then
+	Exit_Code="$(Error_Handle "${Status_no_directory}" "${arg}")"
+	exit "${Exit_Code}"
+elif [[ -z "${Flag}" ]]; then
+	Exit_Code="$(Error_Handle "${Status_no_action}" "${arg}")"
+	exit "${Exit_Code}"
+elif [ "${Flag}" = 'Action' ]; then
+	read -N 1 -sr -p 'Rename files permanently? ( y or n )'
+	if [ "${REPLY}" != 'y' ]; then
+		exit
+	else
+		echo -ne '\n'
+	fi
+fi
+

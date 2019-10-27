@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+
+#set -x #Debuging
+
+shopt -u nocaseglob
+shopt -u nocasematch
+set -e
+unset LC_TYPE
+
+script_dir="$(dirname "${0}")"              # directory of this script
+script_dir="$(readlink -f "${script_dir}")" # Make sure absolute path
+
+# shellcheck source=./variables.sh
+source "${script_dir}/variables.sh"
+
+# shellcheck disable=SC2086
+_rn () {
+
+	local Counter=0
+
+	exit_on_signal_SIGINT () {
+		clear
+		echo "( Program interrupted )" 2>&1
+		exit "${Stat[success]}"
+	}
+
+	trap exit_on_signal_SIGINT SIGINT
+
+	# shellcheck source=./_Get_Input
+	source "${script_dir}/_Get_Input" "${@}"
+
+	# process all subdirectories and files in parent directory
+	while read -r File_Path; do
+
+		local -A File		# Testing 
+
+		#Parent_Dir="${File_Path%/*}";
+		#Input_File="${File_Path##*/}";
+		#New_File_Name="${Input_File}"
+
+		File[Raw_Input]="${File_Path}";		# Testing 
+		File[Parent_Dir]="${File_Path%/*}";		# Testing 
+		File[Base_Name]="${File_Path##*/}";		# Testing 
+		File[New_File_Name]="${File[Base_Name]}"	# Testing 
+
+		# check if new name already exists
+		case "${Flag}" in
+
+			Action|No_Action) # process all files and directories 
+
+
+				#Rename_Status="$(Rename "${Flag}" "${File_Path}" "${Parent_Dir}" "${Input_File}" "${New_File_Name}")"
+				#if Rename "${Flag}" "${File_Path}" "${Parent_Dir}" "${Input_File}" "${New_File_Name}"; then
+
+				if Rename "${Flag}" "${File[Raw_Input]}" "${File[Parent_Dir]}" "${File[Base_Name]}" "${File[New_File_Name]}"; then 
+					Counter=$(( "${Counter}" + 1 ))
+				else
+					continue
+				fi
+				;;
+
+			Show) # show problematic file names
+
+				set +e
+				if echo "${File[Base_Name]}" | pcre2grep --color -u "${TEST_REGEX}"; then
+					Counter=$(( "${Counter}" + 1 ))
+				fi
+				;;
+		esac
+
+
+	done< <(find -L "${Dir_List[@]}" -depth  ${Depth:=-maxdepth 1} -exec search_plugin '{}' \; | xargs -r --null -n 1)
+
+	show_status "Summary" "${Flag}" "${Counter}"
+
+	return "${Stat[success]}"
+}
+
+_rn "${@}"
+

@@ -1,0 +1,56 @@
+#!/bin/bash
+
+#set -x #Debuging
+
+script_dir="$(dirname "${0}")"              # directory of this script
+script_dir="$(readlink -f "${script_dir}")" # Make sure absolute path
+
+# shellcheck source=./color_def.sh
+source "${script_dir}/color_def.sh"
+# shellcheck source=./variables.sh
+source "${script_dir}/variables.sh"
+
+Rename () {
+
+	local -A File		# Testing 
+	local Exit_Code
+
+	local Action_Type="${1}"
+
+	File[Raw_Input]="${2}";		# Testing 
+	File[Parent_Dir]="${3}";		# Testing 
+	File[Base_Name]="${4}";		# Testing 
+	File[New_File_Name]="${5}"	# Testing 
+
+	#local File_Path="${2}"
+	#local Parent_Dir="${3}"
+	#local Input_File="${4}"
+	#local New_File_Name="${5}"
+
+	File[New_File_Name]="$(echo -n "${File[New_File_Name]}" | perl -npe "${REGEX2}" | sed -E -e "${REGEX3}")"
+
+	if [[ ! -e "${File[Parent_Dir]}/${File[New_File_Name]}" ]] && [[ ! "${File[Base_Name]}" = "${File[New_File_Name]}" ]]; then
+		case "${Action_Type}" in
+			Action) # process all files and directories 
+				mv -vn -T -- "${File[Raw_Input]}" "${File[Parent_Dir]}/${File[New_File_Name]}" >/dev/null
+				show_status "${Action_Type}" "${File[Raw_Input]}" "${File[Parent_Dir]}" "${File[New_File_Name]}"
+				;;
+			No_Action) # dry run
+				show_status "${Action_Type}" "${File[Raw_Input]}" "${File[Parent_Dir]}" "${File[New_File_Name]}"
+				;;
+		esac
+		Exit_Code="${Stat[success]}"
+	elif [[ -e "${File[Parent_Dir]}/${File[New_File_Name]}" ]]; then
+		Error_Handle "${Stat[already_exist]}" "${File[Raw_Input]}" "${File[New_File_Name]}"
+		Exit_Code="${Stat[already_exist]}"
+	else
+		Error_Handle "${Stat[same_file]}" "${File[Raw_Input]}" "${File[New_File_Name]}"
+		Exit_Code="${Stat[same_file]}"
+	fi
+
+	unset File Action_Type
+	return "${Exit_Code}"
+
+}
+
+Rename "${@}"

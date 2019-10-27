@@ -1,0 +1,6 @@
+#!/bin/bash
+
+exit_on_signal_SIGINT () {
+	echo "Script interrupted." 2>&1
+		exit 0
+}

@@ -1,0 +1,64 @@
+#!/bin/bash
+
+#set -x #Debuging
+
+script_dir="$(dirname "${0}")"              # directory of this script
+script_dir="$(readlink -f "${script_dir}")" # Make sure absolute path
+
+# shellcheck source=./color_def.sh
+source "${script_dir}/color_def.sh"
+
+# shellcheck disable=SC2059
+Err_handle () {
+
+	local Error_Code="${1}"
+	local New_File_Name
+	local File_Path
+	local Non_Directory
+	local Non_File
+	local Invalid_Option
+
+	case "${Error_Code}" in 
+		1) # process all files and directories 
+			printf -- "($Red Multiple actions specified $NC)\n" >&2
+			;;
+		2) # process all files and directories 
+			Invalid_Option="${2}"
+			printf -- "($Red %s $NC %s )\n" "Unknown option" "${Invalid_Option}" >&2
+			;;
+		3) # process all files and directories 
+			printf -- "($Red %s $NC)\n" "No action specified" >&2
+			;;
+		4) # process all files and directories 
+			printf -- "($Red %s $NC)\n" "Missing directory operand" >&2
+			;;
+		5) # process all files and directories 
+			printf -- "($BYellow No file specified $NC)\n" >&2
+			;;
+		6) # process all files and directories 
+			Non_Directory="${2}"
+			printf -- "($Red No such file or directory$NC %s )\n" "${Non_Directory}" >&2
+			;;
+		7) # process all files and directories 
+			Non_File="${2}"
+			printf -- "( $Red %s $NC ) non existent file specified.\n" "${Non_File}" >&2
+			;;
+		8) # process all files and directories 
+			File_Path="${2}"
+			New_File_Name="${3}"
+			printf -- "${BYellow}failed$NC(%s not renamed: %s already exist)\n" "${File_Path}" "${New_File_Name}" >&2
+			;;
+		9) # process all files and directories 
+			File_Path="${2}"
+			New_File_Name="${3}"
+			printf -- "($BYellow Warning $NC %s not renamed: %s and %s are the same)\n" "${File_Path}" "${File_Path}" "${New_File_Name}" >&2
+			;;
+		10) # process all files and directories 
+			printf -- "($Red %s $NC)\n" "No input" >&2
+			;;
+	esac
+
+	return "${Error_Code}"
+}
+
+Err_handle "${@}"

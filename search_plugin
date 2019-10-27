@@ -1,0 +1,21 @@
+#!/bin/bash
+
+#set -x #Debuging
+
+script_dir="$(dirname "${0}")"              # directory of this script
+script_dir="$(readlink -f "${script_dir}")" # Make sure absolute path
+
+# shellcheck source=./variables.sh
+source "${script_dir}/variables.sh"
+
+Check_File_Name () {
+
+	local Base_File_Name="${1}"
+
+	if [[ "${Base_File_Name##*/}" =~ ^[^.] ]] && echo "${Base_File_Name##*/}" | pcre2grep -q -u -e "${TEST_REGEX}"; then
+		printf "%s\0" "${Base_File_Name}"
+	fi
+
+}
+
+Check_File_Name "${1}"

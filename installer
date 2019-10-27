@@ -1,0 +1,74 @@
+#!/bin/bash
+
+red="\e[0;31m"
+green="\e[0;32m"
+off="\e[0m"
+
+function banner() {
+
+	clear
+	echo "  _____ _     _____                       ";              
+	echo " |_   _| |__ | ___/       ____  _ __      ";              
+	echo "   | | | '_ \| |_        |  __|| '_ \     ";              
+	echo "   | | | | | | |__       | |   | | | \    ";          
+	echo "   |_| |_| |_|____\      |_|   |_| |_|    ";          
+	echo "                                          ";              
+	echo "  ___             _        _ _            ";              
+	echo " |_ _|  _ __  ___| |_ __ _| | | ___ ___   ";              
+	echo "  | |  | '_ \/ __| __/ _\` | | |/ _ \ __\ ";              
+	echo "  | |  | | | \__ \ || (_| | | |  __/ |    ";              
+	echo " |___| |_| |_|___/\__\__,_|_|_|\___|_|    ";              
+	echo "                                          ";              
+
+}
+
+function linux() {
+	echo -e "$red [$green+$red]$off Installing Perl ...";
+	sudo apt-get install -y perl
+	echo -e "$red [$green+$red]$off Installing JSON Module ...";
+	cpan install JSON
+	echo -e "$red [$green+$red]$off Checking directories..."
+	if [ -d "/usr/share/Th3inspector" ]; then
+		echo -e "$red [$green+$red]$off A Directory Th3inspector Was Found! Do You Want To Replace It? [Y/n]:" ;
+		read -r replace
+		if [ "$replace" = "y" ]; then
+			sudo rm -r "/usr/share/Th3inspector"
+			sudo rm "/usr/share/icons/Th3inspector.png"
+			sudo rm "/usr/share/applications/Th3inspector.desktop"
+			sudo rm "/usr/local/bin/Th3inspector"
+
+		else
+			echo -e "$red [$green✘$red]$off If You Want To Install You Must Remove Previous Installations";
+			echo -e "$red [$green✘$red]$off Installation Failed";
+			exit
+		fi
+	fi 
+
+	echo -e "$red [$green+$red]$off Installing ...";
+	echo -e "$red [$green+$red]$off Creating Symbolic Link ...";
+	echo -e "#!/bin/bash
+	perl /usr/share/Th3inspector/Th3inspector.pl" "${1+"$@"}" > "Th3inspector";
+	chmod +x "Th3inspector";
+	sudo mkdir "/usr/share/Th3inspector"
+	sudo cp "install.sh" "/usr/share/Th3inspector"
+	sudo cp "update.sh" "/usr/share/Th3inspector"
+	sudo chmod +x /usr/share/Th3inspector/update.sh
+	sudo cp "Th3inspector.pl" "/usr/share/Th3inspector"
+	sudo cp "config/Th3inspector.png" "/usr/share/icons"
+	sudo cp "config/Th3inspector.desktop" "/usr/share/applications"
+	sudo cp "Th3inspector" "/usr/local/bin/"
+	rm "Th3inspector";
+
+	if [ -d "/usr/share/Th3inspector" ] ;
+	then
+		echo -e "$red [$green+$red]$off Tool Successfully Installed And Will Start In 5s!";
+		echo -e "$red [$green+$red]$off You can execute tool by typing Th3inspector"
+		sleep 5;
+		Th3inspector
+	else
+		echo -e "$red [$green✘$red]$off Tool Cannot Be Installed On Your System! Use It As Portable !";
+		exit
+	fi 
+}
+
+banner
