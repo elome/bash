@@ -21,33 +21,33 @@ _Input () {
 
 		case "${arg}" in
 
-			-a|--action|-n|--dryrun|-s|--show|-h|--help) # act on files
+			-a|action|-n|dryrun|-s|show|-h|help) # act on files
 				if [[ -n "${Flag}" ]]; then
 					Exit_Code="$(Error_Handle "${Stat[multiple_flags]}" "${arg}")"
 					exit "${Exit_Code}"
 				else
 					case "${arg}" in
-						-a|--action)
+						-a|action)
 							Flag="Action"
 							;;
-						-n|--dryrun)
+						-n|dryrun)
 							Flag="No_Action"
 							;;
-						-s|--show)
+						-s|show)
 							Flag="Show"
 							;;
-						-h|--help)
+						-h|help)
 							Help_Usage 
-							exit "${Status_success}"
+							exit "${Stat[success]}"
 							;;
 					esac
 				fi
 
 				;;
-			-R|--recursive) # run in non recursive mode
+			-R|recursive) # run in non recursive mode
 				Depth="-mindepth 0"
 				;;
-			-d|--directory) # process files in multiple directories
+			-d|directory) # process files in multiple directories
 				Prev_Flag="d"
 				;;
 			*) # print help message

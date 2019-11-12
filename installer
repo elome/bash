@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 red="\e[0;31m"
 green="\e[0;32m"
 off="\e[0m"
@@ -13,29 +15,38 @@ function banner() {
 	echo "   | | | | | | |__       | |   | | | \    ";          
 	echo "   |_| |_| |_|____\      |_|   |_| |_|    ";          
 	echo "                                          ";              
-	echo "  ___             _        _ _            ";              
-	echo " |_ _|  _ __  ___| |_ __ _| | | ___ ___   ";              
-	echo "  | |  | '_ \/ __| __/ _\` | | |/ _ \ __\ ";              
-	echo "  | |  | | | \__ \ || (_| | | |  __/ |    ";              
-	echo " |___| |_| |_|___/\__\__,_|_|_|\___|_|    ";              
+	echo "  ___            _        _ _             ";              
+	echo " |_ _| _ __  ___| |_ __ _| | | ___ ___    ";              
+	echo "  | | | '_ \/ __| __/ _\` | | |/ _ \ __\  ";              
+	echo "  | | | | | \__ \ || (_| | | |  __/ |     ";              
+	echo " |___||_| |_|___/\__\__,_|_|_|\___|_|     ";              
 	echo "                                          ";              
 
 }
 
-function linux() {
+rn_installer() {
+
+	local bin_dir share_dir script_dir
+
+	script_dir="$(dirname "${0}")"              # directory of this script
+	script_dir="$(readlink -f "${script_dir}")" # Make sure absolute path
+
+	share_dir=/usr/share/
+	prog_dir=/usr/share/rnelome
+	bin_dir=/usr/local/bin/
+
 	echo -e "$red [$green+$red]$off Installing Perl ...";
-	sudo apt-get install -y perl
-	echo -e "$red [$green+$red]$off Installing JSON Module ...";
-	cpan install JSON
+	sudo apt-get install -y perl >/dev/null
+	echo -e "$red [$green+$red]$off Installing Pcre2grep ...";
+	sudo apt-get install -y pcre2-utils >/dev/null
 	echo -e "$red [$green+$red]$off Checking directories..."
-	if [ -d "/usr/share/Th3inspector" ]; then
-		echo -e "$red [$green+$red]$off A Directory Th3inspector Was Found! Do You Want To Replace It? [Y/n]:" ;
-		read -r replace
+	if [ -d "${share_dir}" ]; then
+		echo -e "$red [$green+$red]$off A Directory rnelome Was Found! Do You Want To Replace It? [Y/n]:" ;
+		read -N 1 -sr replace
 		if [ "$replace" = "y" ]; then
-			sudo rm -r "/usr/share/Th3inspector"
-			sudo rm "/usr/share/icons/Th3inspector.png"
-			sudo rm "/usr/share/applications/Th3inspector.desktop"
-			sudo rm "/usr/local/bin/Th3inspector"
+			#sudo rm -rfv "${prog_dir}"
+			sudo unlink "${bin_dir}/rn"
+			sudo unlink "/etc/bash_completion.d/rn.bash"
 
 		else
 			echo -e "$red [$green✘$red]$off If You Want To Install You Must Remove Previous Installations";
@@ -45,26 +56,17 @@ function linux() {
 	fi 
 
 	echo -e "$red [$green+$red]$off Installing ...";
-	echo -e "$red [$green+$red]$off Creating Symbolic Link ...";
-	echo -e "#!/bin/bash
-	perl /usr/share/Th3inspector/Th3inspector.pl" "${1+"$@"}" > "Th3inspector";
-	chmod +x "Th3inspector";
-	sudo mkdir "/usr/share/Th3inspector"
-	sudo cp "install.sh" "/usr/share/Th3inspector"
-	sudo cp "update.sh" "/usr/share/Th3inspector"
-	sudo chmod +x /usr/share/Th3inspector/update.sh
-	sudo cp "Th3inspector.pl" "/usr/share/Th3inspector"
-	sudo cp "config/Th3inspector.png" "/usr/share/icons"
-	sudo cp "config/Th3inspector.desktop" "/usr/share/applications"
-	sudo cp "Th3inspector" "/usr/local/bin/"
-	rm "Th3inspector";
+	#sudo -H cp -r -t "${share_dir}" "${script_dir}"/*
+	sudo -H git clone "${script_dir}" "${share_dir}"
+	sudo -H chmod +x ${prog_dir}/{Error_Handle,Help_Usage,Rename,Signal_Handler,_Check_Input,_Get_Input,rn,search_plugin,show_status}
+	sudo -H ln -s "${prog_dir}/rn" "${bin_dir}/rn"
+	sudo -H ln -s "${prog_dir}/rn_completion" "/etc/bash_completion.d/rn.bash"
 
-	if [ -d "/usr/share/Th3inspector" ] ;
+	if [ -d "${prog_dir}" ] ;
 	then
 		echo -e "$red [$green+$red]$off Tool Successfully Installed And Will Start In 5s!";
-		echo -e "$red [$green+$red]$off You can execute tool by typing Th3inspector"
+		echo -e "$red [$green+$red]$off You can execute tool by typing rn"
 		sleep 5;
-		Th3inspector
 	else
 		echo -e "$red [$green✘$red]$off Tool Cannot Be Installed On Your System! Use It As Portable !";
 		exit
@@ -72,3 +74,4 @@ function linux() {
 }
 
 banner
+rn_installer

@@ -1,0 +1,28 @@
+#!/bin/bash
+# Bash completion file for Linux Mint apt utility.
+#
+
+_rn()
+{
+	local cur opt prev
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+
+	# Completion of commands.
+	if [[ $COMP_CWORD == 1 ]]; then
+		COMPREPLY=( $(compgen -W 'action dryrun show help' "$cur" ) )
+	elif [[ $COMP_CWORD == 2 && "${COMP_WORDS[1]}" != help ]]; then
+		COMPREPLY=( $(compgen -W 'recursive non-recursive directory' "$cur" ) )
+	elif [[ $COMP_CWORD == 3 ]]; then
+		prev="${COMP_WORDS[2]}"
+		if [[ "${prev}" == recursive || "${prev}" == non-recursive ]]; then
+			COMPREPLY=( $(compgen -W 'directory' "$cur" ) )
+		elif [[ "${prev}" == directory ]]; then
+			COMPREPLY=( $(compgen -W "$(find . -maxdepth 1 -type d -print0 | xargs -0 )" "$cur" ) )
+		fi
+	elif [[ $COMP_CWORD == 4 && "${COMP_WORDS[3]}" == directory ]]; then
+		COMPREPLY=( $(compgen -W "$(find . -maxdepth 1 -type d -print0 | xargs -0 )" "$cur" ) )
+	fi
+
+} &&
+	complete -F _rn rn
