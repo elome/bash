@@ -26,40 +26,55 @@ function banner() {
 
 rn_installer() {
 
-	local bin_dir share_dir script_dir
+	local prog_dir script_dir req_package
 
 	script_dir="$(dirname "${0}")"              # directory of this script
 	script_dir="$(readlink -f "${script_dir}")" # Make sure absolute path
 
-	share_dir=/usr/share/
-	prog_dir=/usr/share/rnelome
-	bin_dir=/usr/local/bin/
+	prog_dir=/usr/local/bin/rnelome
 
-	echo -e "$red [$green+$red]$off Installing Perl ...";
-	sudo apt-get install -y perl >/dev/null
-	echo -e "$red [$green+$red]$off Installing Pcre2grep ...";
-	sudo apt-get install -y pcre2-utils >/dev/null
+	req_package=(perl pcre2-utils)
+
+	echo -e "$red [$green+$red]$off Checking requirements ..."
+	sleep 1
+	for package in "${req_package[@]}"; do
+		
+		if dpkg -s "${package}" &> /dev/null; then
+			echo -e "$red [$green+$red]$off ${package} is installed!";
+		else
+			echo -e "$red [$green+$red]$off ${package} is NOT installed!";
+			echo -e "$red [$green+$red]$off Installing ${package} ...";
+			#sudo apt-get install -y "${package}" >/dev/null
+		fi
+	done
+
 	echo -e "$red [$green+$red]$off Checking directories..."
-	if [ -d "${share_dir}" ]; then
+	sleep 1
+	if [ -d "${prog_dir}" ]; then
 		echo -e "$red [$green+$red]$off A Directory rnelome Was Found! Do You Want To Replace It? [Y/n]:" ;
 		read -N 1 -sr replace
 		if [ "$replace" = "y" ]; then
-			#sudo rm -rfv "${prog_dir}"
-			sudo unlink "${bin_dir}/rn"
-			sudo unlink "/etc/bash_completion.d/rn.bash"
-
+			echo -e "$red [$green✘$red]$off Removing Previous Installations ...";
+			sudo rm -rf "${prog_dir}"
+			if [ -L "/etc/bash_completion.d/rn.bash" ]; then
+				sudo unlink "/etc/bash_completion.d/rn.bash"
+			fi
+			if [ -L "/usr/local/bin/rn" ]; then
+				sudo unlink "/usr/local/bin/rn"
+			fi
 		else
 			echo -e "$red [$green✘$red]$off If You Want To Install You Must Remove Previous Installations";
-			echo -e "$red [$green✘$red]$off Installation Failed";
-			exit
+			echo -e "$red [$green✘$red]$off Installation Aborted";
+			exit 1
 		fi
 	fi 
 
 	echo -e "$red [$green+$red]$off Installing ...";
+	sleep 1
 	#sudo -H cp -r -t "${share_dir}" "${script_dir}"/*
-	sudo -H git clone "${script_dir}" "${share_dir}"
+	sudo -H git clone "${script_dir}" "${prog_dir}"
 	sudo -H chmod +x ${prog_dir}/{Error_Handle,Help_Usage,Rename,Signal_Handler,_Check_Input,_Get_Input,rn,search_plugin,show_status}
-	sudo -H ln -s "${prog_dir}/rn" "${bin_dir}/rn"
+	sudo -H ln -s "${prog_dir}/rn" "/usr/local/bin/rn"
 	sudo -H ln -s "${prog_dir}/rn_completion" "/etc/bash_completion.d/rn.bash"
 
 	if [ -d "${prog_dir}" ] ;

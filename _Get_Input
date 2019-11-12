@@ -6,6 +6,8 @@ set -e
 
 _Input () {
 
+	PATH="${PATH}:${PWD}"
+
 	declare -g Depth
 
 	if [[ -z "${*}" ]]; then

@@ -11,7 +11,11 @@ script_dir="$(dirname "${0}")"              # directory of this script
 script_dir="$(readlink -f "${script_dir}")" # Make sure absolute path
 
 # shellcheck source=./variables.sh
-source "${script_dir}/variables.sh"
+if [ -d "${script_dir}/rnelome" ]; then
+	source "${script_dir}/rnelome/variables.sh"
+else
+	source "${script_dir}/variables.sh"
+fi
 
 # shellcheck disable=SC2086
 _rn () {
@@ -24,10 +28,15 @@ _rn () {
 		exit "${Stat[success]}"
 	}
 
-	trap exit_on_signal_SIGINT SIGINT
+trap exit_on_signal_SIGINT SIGINT
 
 	# shellcheck source=./_Get_Input
-	source "${script_dir}/_Get_Input" "${@}"
+	if [ -d "${script_dir}/rnelome" ]; then
+		source "${script_dir}/rnelome/_Get_Input" "${@}"
+	else
+		source "${script_dir}/_Get_Input" "${@}"
+	fi
+
 
 	# process all subdirectories and files in parent directory
 	while read -r File_Path; do
